@@ -5,8 +5,11 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class TipoNavegador(str, Enum):
+    """Navegadores suportados pelo `Navegador` (campo `tipo_navegador`)."""
+
     CHROME = "chrome"
     EDGE = "edge"
+    FIREFOX = "firefox"
 
 
 class ConfiguracaoNavegador(BaseModel):
@@ -24,7 +27,7 @@ class ConfiguracaoNavegador(BaseModel):
 
     tipo_navegador: TipoNavegador = Field(
         default=TipoNavegador.CHROME,
-        description="Qual navegador abrir: 'chrome' ou 'edge' (ou TipoNavegador.CHROME/EDGE).",
+        description="Qual navegador abrir: 'chrome', 'edge' ou 'firefox' (ou TipoNavegador.CHROME/EDGE/FIREFOX).",
     )
     sem_interface: bool = Field(
         default=False,
@@ -32,7 +35,10 @@ class ConfiguracaoNavegador(BaseModel):
     )
     anonimo: bool = Field(
         default=True,
-        description="True abre em modo anônimo/privado (--incognito no Chrome, --inprivate no Edge).",
+        description=(
+            "True abre em modo anônimo/privado (--incognito no Chrome, "
+            "--inprivate no Edge, -private no Firefox)."
+        ),
     )
     tamanho_janela: tuple[int, int] | None = Field(
         default=(1920, 1080),
@@ -73,4 +79,25 @@ class ConfiguracaoNavegador(BaseModel):
     argumentos_extras: list[str] = Field(
         default_factory=list,
         description="Flags de linha de comando adicionais para o navegador (ex.: '--proxy-server=...').",
+    )
+    pasta_screenshot_erro: Path | None = Field(
+        default=None,
+        description=(
+            "Se definida, tira um screenshot automático nessa pasta sempre que uma "
+            "espera expirar (ErroElementoNaoEncontrado). None desativa (padrão)."
+        ),
+    )
+    tentativas_retry_transitorio: int = Field(
+        default=2,
+        ge=0,
+        description=(
+            "Quantas vezes reexecutar uma ação (clicar, digitar, ...) se ela falhar "
+            "por um erro transitório do Selenium (elemento 'stale', ainda não "
+            "interagível, etc.) antes de desistir."
+        ),
+    )
+    espera_entre_tentativas: float = Field(
+        default=0.3,
+        ge=0,
+        description="Segundos de espera entre uma tentativa e a próxima, ao reexecutar por erro transitório.",
     )
