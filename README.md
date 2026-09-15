@@ -1,5 +1,7 @@
 # webot
 
+[![CI](https://github.com/jvabreucunha/webot/actions/workflows/ci.yml/badge.svg)](https://github.com/jvabreucunha/webot/actions/workflows/ci.yml)
+
 Abstração em pt-br sobre o Selenium para automação/RPA web. Um objeto (`Navegador`)
 com métodos em português para ciclo de vida do navegador, esperas explícitas,
 localizar elementos e interagir com eles — sem precisar importar nada do
@@ -752,6 +754,16 @@ mypy webot scripts        # checagem de tipos
 caso de alguém adicionar um campo em `ConfiguracaoNavegador` e esquecer de
 replicá-lo em `Navegador.__init__` (ou vice-versa) — falha alto e claro em
 vez de deixar os dois saírem de sincronia silenciosamente.
+
+### CI
+
+Todo push/PR em `main` roda [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
+em 4 jobs paralelos: `ruff check .`, `mypy webot scripts`, a suíte completa
+(`pytest`, incluindo os testes de integração reais do `Empacotador`), e uma
+checagem de que `REFERENCIA_IA.md` está sincronizado com o código (roda
+`scripts/gerar_referencia_ia.py` de novo e falha se o resultado for
+diferente do commitado). Nada disso substitui rodar localmente antes de
+commitar — só pega o que passou batido.
 
 ## Versionamento
 
