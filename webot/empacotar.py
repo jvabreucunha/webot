@@ -136,8 +136,12 @@ def empacotar_cli(argv: list[str]) -> int:
     parser.add_argument(
         "--sem-console", action="store_true", help="gera sem janela de console (print()/input() param de funcionar)"
     )
-    parser.add_argument("--onedir", action="store_true", help="gera uma pasta em vez de um único .exe (inicia mais rápido)")
-    parser.add_argument("--pasta-saida", type=Path, default=None, help="pasta onde o executável é gerado (padrão: dist/)")
+    parser.add_argument(
+        "--onedir", action="store_true", help="gera uma pasta em vez de um único .exe (inicia mais rápido)"
+    )
+    parser.add_argument(
+        "--pasta-saida", type=Path, default=None, help="pasta onde o executável é gerado (padrão: dist/)"
+    )
     parser.add_argument(
         "--hidden-import",
         dest="imports_ocultos",
