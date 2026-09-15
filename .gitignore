@@ -7,3 +7,19 @@ dist/
 build/
 *.png
 .vscode/
+.idea/
+
+# cache de testes/lint
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# segredos/ambiente local
+.env
+
+# anotações pessoais, não faz parte do projeto
+a.txt
+
+# lixo de SO
+.DS_Store
+Thumbs.db
