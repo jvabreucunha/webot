@@ -45,3 +45,11 @@ with tempfile.TemporaryDirectory() as pasta_temporaria:
         print(f"evidência: url={evidencia.url}")
         print(f"  screenshot: {evidencia.caminho_screenshot}")
         print(f"  html: {evidencia.caminho_html}")
+
+        # ---- salvar_relatorio_json(): exporta métricas + evidências da
+        # sessão pra um arquivo — útil pra auditoria/dashboard de um robô
+        # rodando desacompanhado ----
+        caminho_relatorio = Path(pasta_temporaria) / "relatorio.json"
+        bot.salvar_relatorio_json(caminho_relatorio)
+        print(f"\nrelatório salvo em: {caminho_relatorio}")
+        print(caminho_relatorio.read_text(encoding="utf-8"))

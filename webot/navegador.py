@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 import random
 import time
@@ -1005,6 +1006,26 @@ class Navegador:
             disponível depois que o bloco/função termina.
         """
         return Etapa(self, nome, tentativas=tentativas)
+
+    def salvar_relatorio_json(self, caminho: str | Path) -> None:
+        """Exporta `metricas` e `evidencias` (acumulados desde que este
+        `Navegador` foi criado) num arquivo JSON — útil pra auditoria ou
+        dashboard de uma automação rodando desacompanhada, sem precisar
+        que o código do usuário monte esse relatório na mão.
+
+        Não é um log de cada ação individual: `metricas` só tem contadores
+        agregados (quantas ações/falhas/retries), e `evidencias` só registra
+        o estado no momento de uma falha (ver `Evidencia`) — não toda ação
+        bem-sucedida. Para um log ação a ação, use `debug()`.
+
+        Args:
+            caminho: caminho do arquivo `.json` a salvar.
+        """
+        relatorio = {
+            "metricas": self.metricas.para_dict(),
+            "evidencias": [evidencia.para_dict() for evidencia in self.evidencias],
+        }
+        Path(caminho).write_text(json.dumps(relatorio, ensure_ascii=False, indent=2), encoding="utf-8")
 
     def debug(self, ativar: bool = True) -> None:
         """Liga (ou desliga) log estruturado no console de cada ação

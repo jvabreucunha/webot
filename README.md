@@ -480,6 +480,37 @@ Se a falha acontece dentro de uma `with bot.etapa(...):` e se propaga pra
 fora dela, a evidência já vem com `etapa` preenchido (a etapa não duplica a
 captura — só anota o próprio nome na evidência que a ação já tinha registrado).
 
+`bot.salvar_relatorio_json(caminho)` exporta `metricas` + todas as
+`evidencias` acumuladas num arquivo `.json` de uma vez — útil pra
+auditoria/dashboard de um robô rodando desacompanhado:
+
+```python
+bot.salvar_relatorio_json("relatorio.json")
+```
+
+```json
+{
+  "metricas": {"acoes": 12, "falhas": 1, "retries": 0},
+  "evidencias": [
+    {
+      "timestamp": "2026-09-14T10:03:12.481903",
+      "erro": "...",
+      "etapa": "Login",
+      "acao": "encontrar",
+      "url": "https://exemplo.com",
+      "caminho_screenshot": null,
+      "caminho_html": null
+    }
+  ]
+}
+```
+
+Isso **não** é um log de cada ação bem-sucedida — `metricas` só tem
+contadores agregados, e `evidencias` só registra o estado no momento de uma
+falha. Para um log ação a ação (inclusive das que deram certo), use o
+[modo debug](#modo-debug) abaixo, redirecionando o `logging` do Python pra
+um arquivo (`logging.FileHandler`) se quiser persistir isso também.
+
 ### Modo debug
 
 `bot.debug()` liga, no console, um log estruturado de cada ação do webot a

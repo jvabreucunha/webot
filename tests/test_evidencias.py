@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import pytest
@@ -43,6 +44,36 @@ def test_evidencia_nao_duplica_quando_etapa_propaga(pagina_teste_url: str) -> No
 
         assert len(bot.evidencias) == 1
         assert bot.evidencias[0].etapa == "Falha"
+
+
+def test_evidencia_para_dict_serializa_timestamp_e_caminhos(tmp_path: Path, pagina_teste_url: str) -> None:
+    pasta = tmp_path / "evidencias"
+    with Navegador(sem_interface=True, pasta_screenshot_erro=pasta) as bot:
+        bot.navegar(pagina_teste_url)
+        with pytest.raises(ErroElementoNaoEncontrado):
+            bot.encontrar(id="nao-existe", timeout=1)
+
+    dado = bot.evidencias[0].para_dict()
+    assert dado["url"] == pagina_teste_url
+    assert isinstance(dado["timestamp"], str)
+    assert dado["caminho_screenshot"] == str(bot.evidencias[0].caminho_screenshot)
+    json.dumps(dado)  # não levanta TypeError (datetime/Path já viraram str)
+
+
+def test_salvar_relatorio_json_exporta_metricas_e_evidencias(tmp_path: Path, pagina_teste_url: str) -> None:
+    caminho_relatorio = tmp_path / "relatorio.json"
+    with Navegador(sem_interface=True) as bot:
+        bot.navegar(pagina_teste_url)
+        bot.clicar(id="botao-clicar")
+        with pytest.raises(ErroElementoNaoEncontrado):
+            bot.encontrar(id="nao-existe", timeout=1)
+
+        bot.salvar_relatorio_json(caminho_relatorio)
+
+    relatorio = json.loads(caminho_relatorio.read_text(encoding="utf-8"))
+    assert relatorio["metricas"]["acoes"] == bot.metricas.acoes
+    assert len(relatorio["evidencias"]) == 1
+    assert relatorio["evidencias"][0]["url"] == pagina_teste_url
 
 
 def test_evidencia_registrada_mesmo_se_capturada_dentro_da_etapa(pagina_teste_url: str) -> None:

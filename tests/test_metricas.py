@@ -26,6 +26,10 @@ def test_navegador_conta_acoes_principais(pagina_teste_url: str) -> None:
         assert bot.metricas.acoes == 4
 
 
+def test_metricas_para_dict() -> None:
+    assert Metricas(acoes=3, falhas=1, retries=2).para_dict() == {"acoes": 3, "falhas": 1, "retries": 2}
+
+
 def test_navegador_conta_retries(pagina_teste_url: str) -> None:
     """Não força uma StaleElementReferenceException de verdade aqui (isso já
     é testado isoladamente, sem browser, em test_utilitarios.py) — só

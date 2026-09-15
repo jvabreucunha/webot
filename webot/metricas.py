@@ -7,7 +7,7 @@ não qualquer exceção solta que aconteça fora de uma etapa.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 
 
 @dataclass
@@ -27,6 +27,11 @@ class Metricas:
     def copia(self) -> Metricas:
         """Uma cópia independente (pra comparar antes/depois sem referência compartilhada)."""
         return Metricas(acoes=self.acoes, falhas=self.falhas, retries=self.retries)
+
+    def para_dict(self) -> dict[str, int]:
+        """Um dict serializável em JSON com os mesmos campos (`acoes`,
+        `falhas`, `retries`) — útil pra exportar um relatório da execução."""
+        return asdict(self)
 
     def __sub__(self, outra: Metricas) -> Metricas:
         return Metricas(

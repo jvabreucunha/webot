@@ -515,6 +515,21 @@ Rola a página até `elemento` ficar visível na tela (`scrollIntoView`).
 Args:
     elemento: um `Elemento` já encontrado.
 
+#### `salvar_relatorio_json(caminho: str | Path) -> None`
+
+Exporta `metricas` e `evidencias` (acumulados desde que este
+`Navegador` foi criado) num arquivo JSON — útil pra auditoria ou
+dashboard de uma automação rodando desacompanhada, sem precisar
+que o código do usuário monte esse relatório na mão.
+
+Não é um log de cada ação individual: `metricas` só tem contadores
+agregados (quantas ações/falhas/retries), e `evidencias` só registra
+o estado no momento de uma falha (ver `Evidencia`) — não toda ação
+bem-sucedida. Para um log ação a ação, use `debug()`.
+
+Args:
+    caminho: caminho do arquivo `.json` a salvar.
+
 #### `selecionar_por_texto(texto: str, *, elemento: Elemento | None = None, timeout: float | None = None, **seletor: str | None) -> None`
 
 Num `<select>` HTML, seleciona a opção pelo texto visível.
