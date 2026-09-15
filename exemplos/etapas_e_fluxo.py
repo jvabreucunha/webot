@@ -34,6 +34,11 @@ with Navegador(sem_interface=True) as bot:
     # ---- métricas da sessão inteira: ações, retries e falhas acumulados ----
     print("métricas da sessão:", bot.metricas)
 
+    # ---- historico: o passo a passo de cada ação bem-sucedida, na ordem em
+    # que aconteceu — inclusive de qual etapa nomeada fazia parte ----
+    for registro in bot.historico:
+        print(f"  [{registro.etapa or '-'}] {registro.acao} {registro.detalhes}")
+
 # ---- Fluxo: uma automação nomeada, montada sem navegador e executada depois ----
 fluxo = Fluxo("Cadastro de cliente")
 fluxo.navegar(_PAGINA_TESTE)

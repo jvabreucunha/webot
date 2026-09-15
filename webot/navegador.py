@@ -38,6 +38,7 @@ from .excecoes import (
     ErroSeletorInvalido,
 )
 from .formulario import Campo, normalizar_campos, preencher_campo
+from .historico import RegistroAcao
 from .metricas import Metricas
 from .resultados import InfoElemento
 
@@ -172,6 +173,7 @@ class Navegador:
         self._driver: webdriver.Remote | None = None
         self.metricas = Metricas()
         self.evidencias: list[Evidencia] = []
+        self.historico: list[RegistroAcao] = []
         self._etapa_atual: Etapa | None = None
 
     # ---------------------------------------------------------------- #
@@ -341,7 +343,7 @@ class Navegador:
         """
         logger.info("Navegando para %s", url)
         self.driver_bruto.get(url)
-        self.metricas.acoes += 1
+        self._registrar_acao("navegar", {"url": url})
 
     def atualizar(self) -> None:
         """Recarrega a página atual (equivalente a F5)."""
@@ -394,6 +396,30 @@ class Navegador:
                 f"Condição não satisfeita dentro do tempo de espera "
                 f"({timeout or self.config.tempo_espera_padrao}s){sufixo}"
             ) from erro
+
+    @staticmethod
+    def _detalhes_alvo(elemento: Elemento | None, seletor: dict[str, str | None]) -> dict[str, Any]:
+        """O seletor usado, ou a tag do `elemento` já encontrado — pra
+        anotar em `RegistroAcao.detalhes` qual foi o alvo de uma ação."""
+        if seletor:
+            return {"seletor": seletor}
+        if elemento is not None:
+            return {"elemento": f"<{elemento.tag}>"}
+        return {}
+
+    def _registrar_acao(self, nome: str, detalhes: dict[str, Any] | None = None) -> None:
+        """Incrementa `metricas.acoes` e acrescenta um `RegistroAcao` a
+        `historico` — chamado por toda ação bem-sucedida do Navegador/Elemento,
+        no mesmo lugar em que cada uma já contava pra `metricas`."""
+        self.metricas.acoes += 1
+        self.historico.append(
+            RegistroAcao(
+                timestamp=datetime.now(),
+                acao=nome,
+                detalhes=detalhes or {},
+                etapa=self._etapa_atual.nome if self._etapa_atual else None,
+            )
+        )
 
     def _registrar_evidencia(
         self, *, etapa: str | None = None, acao: str | None = None, erro: BaseException | str | None = None
@@ -501,7 +527,7 @@ class Navegador:
         bruto = self.esperar_ate(
             CE.presence_of_element_located((by, valor)), timeout, descricao=f"{by}={valor!r}"
         )
-        self.metricas.acoes += 1
+        self._registrar_acao("encontrar", {"seletor": f"{by}={valor}"})
         logger.info("Elemento encontrado (%s=%r)", by, valor)
         return Elemento(bruto, self)
 
@@ -526,7 +552,7 @@ class Navegador:
         brutos = self.esperar_ate(
             CE.presence_of_all_elements_located((by, valor)), timeout, descricao=f"{by}={valor!r}"
         )
-        self.metricas.acoes += 1
+        self._registrar_acao("encontrar_todos", {"seletor": f"{by}={valor}", "total": len(brutos)})
         logger.info("%d elemento(s) encontrado(s) (%s=%r)", len(brutos), by, valor)
         return [Elemento(bruto, self) for bruto in brutos]
 
@@ -619,7 +645,7 @@ class Navegador:
         equivalente a chamar `.clicar()` direto no `Elemento`)."""
         alvo = self._resolver_clicavel(elemento, timeout, **seletor)
         clicar_com_fallback(self.driver_bruto, alvo)
-        self.metricas.acoes += 1
+        self._registrar_acao("clicar", self._detalhes_alvo(elemento, seletor))
         logger.info("Clique realizado (%s)", seletor or "elemento")
 
     @repetir_se_transitorio
@@ -652,7 +678,9 @@ class Navegador:
         if limpar:
             alvo.clear()
         alvo.send_keys(texto)
-        self.metricas.acoes += 1
+        # detalhes nunca inclui `texto` — evita gravar senhas/dados sensíveis
+        # em historico/salvar_relatorio_json.
+        self._registrar_acao("digitar", self._detalhes_alvo(elemento, seletor))
         logger.info("Texto digitado (%s)", seletor or "elemento")
 
     @repetir_se_transitorio
@@ -1008,21 +1036,21 @@ class Navegador:
         return Etapa(self, nome, tentativas=tentativas)
 
     def salvar_relatorio_json(self, caminho: str | Path) -> None:
-        """Exporta `metricas` e `evidencias` (acumulados desde que este
-        `Navegador` foi criado) num arquivo JSON — útil pra auditoria ou
-        dashboard de uma automação rodando desacompanhada, sem precisar
-        que o código do usuário monte esse relatório na mão.
+        """Exporta `metricas`, `historico` e `evidencias` (acumulados desde
+        que este `Navegador` foi criado) num arquivo JSON — útil pra
+        auditoria ou dashboard de uma automação rodando desacompanhada, sem
+        precisar que o código do usuário monte esse relatório na mão.
 
-        Não é um log de cada ação individual: `metricas` só tem contadores
-        agregados (quantas ações/falhas/retries), e `evidencias` só registra
-        o estado no momento de uma falha (ver `Evidencia`) — não toda ação
-        bem-sucedida. Para um log ação a ação, use `debug()`.
+        `historico` é o passo a passo ação por ação (ver `RegistroAcao`);
+        `metricas` são só os contadores agregados; `evidencias` só registra
+        o estado no momento de uma falha (ver `Evidencia`).
 
         Args:
             caminho: caminho do arquivo `.json` a salvar.
         """
         relatorio = {
             "metricas": self.metricas.para_dict(),
+            "historico": [registro.para_dict() for registro in self.historico],
             "evidencias": [evidencia.para_dict() for evidencia in self.evidencias],
         }
         Path(caminho).write_text(json.dumps(relatorio, ensure_ascii=False, indent=2), encoding="utf-8")

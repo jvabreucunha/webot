@@ -15,6 +15,7 @@ from .excecoes import (
 )
 from .fluxo import ErroFluxo, Fluxo, ResultadoFluxo
 from .formulario import Campo
+from .historico import RegistroAcao
 from .metricas import Metricas
 from .navegador import Navegador
 from .resultados import InfoElemento
@@ -38,6 +39,7 @@ __all__ = [
     "ResultadoFluxo",
     "Metricas",
     "Evidencia",
+    "RegistroAcao",
     "Empacotador",
     "ErroAutomacao",
     "ErroAoIniciarNavegador",

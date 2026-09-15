@@ -25,6 +25,7 @@ from webot.etapa import Etapa, ResultadoEtapa
 from webot.evidencias import Evidencia
 from webot.fluxo import Fluxo, ResultadoFluxo
 from webot.formulario import Campo
+from webot.historico import RegistroAcao
 from webot.metricas import Metricas
 from webot.resultados import InfoElemento
 
@@ -44,6 +45,7 @@ _DATACLASSES: dict[str, type] = {
     "ResultadoFluxo": ResultadoFluxo,
     "Metricas": Metricas,
     "Evidencia": Evidencia,
+    "RegistroAcao": RegistroAcao,
     "Campo": Campo,
 }
 _ENUMS: dict[str, type[Enum]] = {

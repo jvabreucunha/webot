@@ -154,7 +154,7 @@ class Elemento:
             CE.element_to_be_clickable(self.bruto), timeout, descricao=f"elemento <{self.tag}> clicável"
         )
         clicar_com_fallback(self._bot.driver_bruto, alvo)
-        self.metricas.acoes += 1
+        self._bot._registrar_acao("clicar", {"elemento": f"<{self.tag}>"})
         logger.info("Clique realizado (elemento <%s>)", self.tag)
 
     @repetir_se_transitorio
@@ -175,7 +175,9 @@ class Elemento:
         if limpar:
             alvo.clear()
         alvo.send_keys(texto)
-        self.metricas.acoes += 1
+        # detalhes nunca inclui `texto` — evita gravar senhas/dados sensíveis
+        # em historico/salvar_relatorio_json.
+        self._bot._registrar_acao("digitar", {"elemento": f"<{self.tag}>"})
         logger.info("Texto digitado (elemento <%s>)", self.tag)
 
     @repetir_se_transitorio
@@ -269,7 +271,7 @@ class Elemento:
         """
         by, valor = resolver_seletor(**seletor)
         bruto = self._bot.esperar_ate(presente_dentro(self.bruto, by, valor), timeout)
-        self.metricas.acoes += 1
+        self._bot._registrar_acao("encontrar", {"seletor": f"{by}={valor}", "dentro_de": f"<{self.tag}>"})
         logger.info("Elemento encontrado (%s=%r, dentro de <%s>)", by, valor, self.tag)
         return Elemento(bruto, self._bot)
 
@@ -287,7 +289,9 @@ class Elemento:
         """
         by, valor = resolver_seletor(**seletor)
         brutos = self._bot.esperar_ate(todos_presentes_dentro(self.bruto, by, valor), timeout)
-        self.metricas.acoes += 1
+        self._bot._registrar_acao(
+            "encontrar_todos", {"seletor": f"{by}={valor}", "dentro_de": f"<{self.tag}>", "total": len(brutos)}
+        )
         logger.info("%d elemento(s) encontrado(s) (%s=%r, dentro de <%s>)", len(brutos), by, valor, self.tag)
         return [Elemento(bruto, self._bot) for bruto in brutos]
 

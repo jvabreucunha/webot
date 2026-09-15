@@ -517,15 +517,14 @@ Args:
 
 #### `salvar_relatorio_json(caminho: str | Path) -> None`
 
-Exporta `metricas` e `evidencias` (acumulados desde que este
-`Navegador` foi criado) num arquivo JSON — útil pra auditoria ou
-dashboard de uma automação rodando desacompanhada, sem precisar
-que o código do usuário monte esse relatório na mão.
+Exporta `metricas`, `historico` e `evidencias` (acumulados desde
+que este `Navegador` foi criado) num arquivo JSON — útil pra
+auditoria ou dashboard de uma automação rodando desacompanhada, sem
+precisar que o código do usuário monte esse relatório na mão.
 
-Não é um log de cada ação individual: `metricas` só tem contadores
-agregados (quantas ações/falhas/retries), e `evidencias` só registra
-o estado no momento de uma falha (ver `Evidencia`) — não toda ação
-bem-sucedida. Para um log ação a ação, use `debug()`.
+`historico` é o passo a passo ação por ação (ver `RegistroAcao`);
+`metricas` são só os contadores agregados; `evidencias` só registra
+o estado no momento de uma falha (ver `Evidencia`).
 
 Args:
     caminho: caminho do arquivo `.json` a salvar.
@@ -1028,6 +1027,18 @@ os arquivos.
 - **`url`** — `str | None = None`
 - **`caminho_screenshot`** — `Path | None = None`
 - **`caminho_html`** — `Path | None = None`
+
+## `RegistroAcao`
+
+Um item do histórico: uma ação, quando aconteceu, com que detalhes
+(seletor, URL, ...) e dentro de qual etapa nomeada (se houver).
+
+### Campos
+
+- **`timestamp`** — `datetime = <obrigatório>`
+- **`acao`** — `str = <obrigatório>`
+- **`detalhes`** — `dict[str, Any] = {}`
+- **`etapa`** — `str | None = None`
 
 ## `Campo`
 

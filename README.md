@@ -460,6 +460,29 @@ erro especificamente (não qualquer exceção solta fora de uma etapa).
 `total_retries`/`retries`, `total_falhas` e `taxa_sucesso` — o recorte de
 cada fluxo/etapa, não a sessão inteira.
 
+### Histórico de ações
+
+`bot.historico` (uma lista de `RegistroAcao`) acumula, em ordem, cada ação
+bem-sucedida do `Navegador` (e dos `Elemento`s dele) — `navegar`, `encontrar`,
+`encontrar_todos`, `clicar` e `digitar` — com timestamp, os detalhes do alvo
+(seletor ou tag do elemento) e a etapa nomeada ativa no momento, se houver:
+
+```python
+with bot.etapa("Login"):
+    bot.clicar(id="botao-entrar")
+
+for registro in bot.historico:
+    print(registro.timestamp, registro.etapa, registro.acao, registro.detalhes)
+# 2026-... None  navegar {"url": "..."}
+# 2026-... Login clicar  {"seletor": {"id": "botao-entrar"}}
+```
+
+Por segurança, `digitar()` **nunca** grava o texto digitado em `detalhes` —
+só o seletor/elemento alvo — pra não acabar salvando senha/dado sensível em
+memória ou num relatório exportado. Não é um substituto de `Evidencia`
+(que também registra falhas) nem das `metricas` (contadores agregados); os
+três juntos saem num só arquivo com `salvar_relatorio_json()`, abaixo.
+
 ### Evidências
 
 Toda vez que uma espera expira, o webot registra uma `Evidencia` (timestamp,
@@ -480,8 +503,8 @@ Se a falha acontece dentro de uma `with bot.etapa(...):` e se propaga pra
 fora dela, a evidência já vem com `etapa` preenchido (a etapa não duplica a
 captura — só anota o próprio nome na evidência que a ação já tinha registrado).
 
-`bot.salvar_relatorio_json(caminho)` exporta `metricas` + todas as
-`evidencias` acumuladas num arquivo `.json` de uma vez — útil pra
+`bot.salvar_relatorio_json(caminho)` exporta `metricas` + `historico` +
+todas as `evidencias` acumuladas num arquivo `.json` de uma vez — útil pra
 auditoria/dashboard de um robô rodando desacompanhado:
 
 ```python
@@ -491,6 +514,10 @@ bot.salvar_relatorio_json("relatorio.json")
 ```json
 {
   "metricas": {"acoes": 12, "falhas": 1, "retries": 0},
+  "historico": [
+    {"timestamp": "2026-09-14T10:03:12.100000", "acao": "navegar", "detalhes": {"url": "https://exemplo.com"}, "etapa": null},
+    {"timestamp": "2026-09-14T10:03:12.300000", "acao": "clicar", "detalhes": {"seletor": {"id": "botao-entrar"}}, "etapa": "Login"}
+  ],
   "evidencias": [
     {
       "timestamp": "2026-09-14T10:03:12.481903",
@@ -504,12 +531,6 @@ bot.salvar_relatorio_json("relatorio.json")
   ]
 }
 ```
-
-Isso **não** é um log de cada ação bem-sucedida — `metricas` só tem
-contadores agregados, e `evidencias` só registra o estado no momento de uma
-falha. Para um log ação a ação (inclusive das que deram certo), use o
-[modo debug](#modo-debug) abaixo, redirecionando o `logging` do Python pra
-um arquivo (`logging.FileHandler`) se quiser persistir isso também.
 
 ### Modo debug
 
@@ -627,6 +648,7 @@ webot/
 │   ├── fluxo.py            # Fluxo, ResultadoFluxo e ErroFluxo
 │   ├── metricas.py         # Metricas (contadores de ações/falhas/retries)
 │   ├── evidencias.py       # Evidencia (o formato do registro de uma falha)
+│   ├── historico.py        # RegistroAcao (o passo a passo de ações bem-sucedidas)
 │   ├── resultados.py       # modelos de retorno tipados (InfoElemento)
 │   ├── excecoes.py         # hierarquia de exceções do pacote
 │   ├── _utilitarios.py     # seletor/retry/scripts JS compartilhados (uso interno)
@@ -658,6 +680,7 @@ webot/
     ├── test_fluxo.py
     ├── test_metricas.py
     ├── test_evidencias.py
+    ├── test_historico.py
     ├── test_debug.py
     ├── test_empacotar.py            # Empacotador: comando montado (mock) + integração real com o PyInstaller
     ├── test_downloads_e_erros.py    # baixar_arquivo() e screenshot automático
