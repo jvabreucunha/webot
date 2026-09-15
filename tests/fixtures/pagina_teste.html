@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <title>Página de teste webot</title>
+</head>
+<body>
+  <h1 id="titulo" class="destaque">Página de teste</h1>
+
+  <button id="botao-clicar" onclick="document.getElementById('resultado-clique').textContent='clicado'">
+    Clique aqui
+  </button>
+  <p id="resultado-clique">nao clicado</p>
+
+  <input id="campo-texto" name="campo_texto" type="text" placeholder="digite algo">
+
+  <select id="select-teste" name="select_teste">
+    <option value="1">Um</option>
+    <option value="2">Dois</option>
+  </select>
+
+  <form id="formulario-teste">
+    <textarea id="comentario" name="comentario"></textarea>
+    <input type="checkbox" id="aceite" name="aceite">
+    <label for="aceite">Aceito os termos</label>
+    <input type="radio" id="opcao-a" name="opcao" value="a">
+    <label for="opcao-a">Opção A</label>
+    <input type="radio" id="opcao-b" name="opcao" value="b">
+    <label for="opcao-b">Opção B</label>
+  </form>
+
+  <a id="link-teste" href="#ancora">Ir para âncora</a>
+
+  <a id="link-download" download="arquivo_teste_download.txt" href="data:text/plain;charset=utf-8,conteudo de teste">Baixar arquivo</a>
+
+  <button id="botao-desabilitado" disabled>Desabilitado</button>
+
+  <div id="oculto" style="display:none">Não deveria aparecer</div>
+
+  <table id="tabela">
+    <tbody>
+      <tr class="linha">
+        <td class="celula-nome">Ana</td>
+        <td><button class="botao-linha" onclick="this.closest('tr').querySelector('.status').textContent='clicado na linha'">Ação</button></td>
+        <td class="status">pendente</td>
+      </tr>
+      <tr class="linha">
+        <td class="celula-nome">Bruno</td>
+        <td><button class="botao-linha" onclick="this.closest('tr').querySelector('.status').textContent='clicado na linha'">Ação</button></td>
+        <td class="status">pendente</td>
+      </tr>
+    </tbody>
+  </table>
+</body>
+</html>
